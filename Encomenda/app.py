@@ -12,10 +12,11 @@ file_path = os.path.abspath(os.path.join(os.getcwd(), 'database', 'encomenda.db'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + file_path
 
 models.init_app(app)
+
 app.register_blueprint(encomenda_blueprint)
 
 migrate = Migrate(app, models.db)
-
+#db.create_all()
 @app.route('/')
 def index():
     return "hello world"
