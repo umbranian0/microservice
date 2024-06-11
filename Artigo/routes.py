@@ -43,3 +43,12 @@ def criar_artigo():
         print(str(e))
         response = {'message': 'Erro na criação do artigo.'}
     return jsonify(response)
+
+@artigo_blueprint.route('/<cA>', methods=['GET'])
+def detalhes_Artigo(cA):
+    artigo = Artigo.query.filter_by(codigoArtigo=cA).first()
+    if artigo:
+        response = {'result': artigo.serializar()}
+    else:
+        response = {'message': 'Sem artigos criados.'}
+    return jsonify(response)
