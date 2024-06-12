@@ -1,25 +1,31 @@
+import logging
 from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
-import models
-import os
-from routes import encomenda_blueprint
 
-app = Flask(__name__)
-app.config['SECRET_KEY'] = 'j5sFMBkzzUV4DUTEQzxqFw'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+logging.basicConfig(level=logging.DEBUG)
 
-file_path = os.path.abspath(os.path.join(os.getcwd(), 'database', 'encomenda.db'))
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + file_path
+db = SQLAlchemy()
+migrate = Migrate()
 
-models.init_app(app)
+def create_app():
+    app = Flask(__name__)
+    app.config.from_object('config.Config')
 
-app.register_blueprint(encomenda_blueprint)
+    logging.debug("Initializing the database.")
+    db.init_app(app)
+    logging.debug("Initializing migration.")
+    migrate.init_app(app, db)
 
-migrate = Migrate(app, models.db)
-#db.create_all()
-@app.route('/')
-def index():
-    return "hello world"
+    from routes import encomenda_blueprint
+    app.register_blueprint(encomenda_blueprint)
+
+    logging.debug("Blueprint registered successfully.")
+
+    return app
 
 if __name__ == '__main__':
+    app = create_app()
+    logging.debug("Starting the application.")
     app.run(debug=True, port=5003)
+
