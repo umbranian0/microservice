@@ -1,82 +1,108 @@
-from flask import Blueprint, request, jsonify, make_response
-from flask_login import login_user, logout_user, current_user
+import datetime
+from urllib import request
+from flask import Blueprint, jsonify, request, make_response
 from werkzeug.security import generate_password_hash, check_password_hash
+from flask_restx import Namespace, Resource, fields
 from models import Utilizador, db
+from flask_login import login_user, current_user, logout_user
 
 utilizador_blueprint = Blueprint('utilizador_api_routes', __name__, url_prefix='/api/utilizador')
+api = Namespace('Utilizador', description='Utilizador operations')
 
-@utilizador_blueprint.route('/todos', methods=['GET'])
-def get_todos_utilizadores():
-    todos_utilizadores = Utilizador.query.all()
-    result = [utilizador.serializar() for utilizador in todos_utilizadores]
-    response = {
-        'message': 'Todos os Utilizadores',
-        'result': result
-    }
-    return jsonify(response)
+# Define models for request and response payloads
+utilizador_model = api.model('Utilizador', {
+    'nomeUtilizador': fields.String(required=True, description='Nome do utilizador'),
+    'password': fields.String(required=True, description='Senha do utilizador')
+})
 
-@utilizador_blueprint.route('/criar', methods=['POST'])
-def criar_utilizador():
-    try:
-        nomeUtilizador = request.form.get('nomeUtilizador')
-        password = request.form.get('password')
+@api.route('/')
+class UtilizadorList(Resource):
+    @api.doc(responses={200: 'Success', 500: 'Internal Server Error'})
+    def get(self):
+        """List all utilizadores"""
+        todos_utilizadores = Utilizador.query.all()
+        result = [utilizador.serializar() for utilizador in todos_utilizadores]
+        return jsonify({'message': 'Todos os Utilizadores', 'result': result})
+
+    @api.doc(responses={201: 'Created', 400: 'Bad Request', 500: 'Internal Server Error'})
+    @api.expect(utilizador_model)
+    def post(self):
+        """Create a new utilizador"""
+        data = request.json
+        nomeUtilizador = data.get('nomeUtilizador')
+        password = data.get('password')
+
         if not nomeUtilizador or not password:
-            response = {
-                'message': 'Nome de utilizador e senha sao obrigatorios.'
-            }
-            return jsonify(response), 400
-        
-        utilizador = Utilizador()
-        utilizador.nomeUtilizador = nomeUtilizador
-        utilizador.password = generate_password_hash(password, method='pbkdf2:sha256')
-        utilizador.administrador = False
+            return {'message': 'Nome de utilizador e senha são obrigatórios.'}, 400
+
+        utilizador = Utilizador(nomeUtilizador=nomeUtilizador, password=generate_password_hash(password))
         db.session.add(utilizador)
         db.session.commit()
-        response = {
-            'message': 'Utilizador criado com sucesso.',
-            'result': utilizador.serializar()
-        }
-    except Exception as e:
-        print(str(e))
-        response = {'message': 'Erro na criação do utilizador.'}
-    return jsonify(response)
 
-@utilizador_blueprint.route('/login', methods=['POST'])
-def login():
-    nomeUtilizador = request.form['nomeUtilizador']
-    password = request.form['password']
+        return {'message': 'Utilizador criado com sucesso.', 'result': utilizador.serializar()}, 201
 
-    utilizador = Utilizador.query.filter_by(nomeUtilizador=nomeUtilizador).first()
 
-    if not utilizador:
-        response = {'message': 'Este utilizador nao existe'}
-        return make_response(jsonify(response), 401)
-    if check_password_hash(utilizador.password, password):
-        utilizador.update_api_key()
-        db.session.commit()
+@api.route('/<string:nomeUtilizador>/login')
+class UtilizadorLogin(Resource):
+    @api.doc(responses={200: 'Success', 401: 'Unauthorized', 500: 'Internal Server Error'})
+    @api.expect(utilizador_model)
+    def post(self, nomeUtilizador):
+        """Login a utilizador"""
+        data = request.json
+        password = data.get('password')
+
+        utilizador = Utilizador.query.filter_by(nomeUtilizador=nomeUtilizador).first()
+
+        if not utilizador or not check_password_hash(utilizador.password, password):
+            return {'message': 'Autenticação incorreta'}, 401
+
         login_user(utilizador)
-        response = {'message': 'Connecting', 'api_key': utilizador.api_key}
-        return make_response(jsonify(response), 200)
-    response = {'message': 'Autenticacao incorreta'}
-    return make_response(jsonify(response), 401)
+        return {'message': 'Conectado'}, 200
 
-@utilizador_blueprint.route('/logout', methods=['POST'])
-def logout():
-    if current_user.is_authenticated:
-        logout_user()
-        return jsonify({'message': 'Desconectado'})
-    return jsonify({'message': 'Não existem utilizadores conectados'})
 
-@utilizador_blueprint.route('/<nomeUtilizador>/existe', methods=['GET'])
-def get_utilizador_existe(nomeUtilizador):
-    utilizador = Utilizador.query.filter_by(nomeUtilizador=nomeUtilizador).first()
-    if utilizador:
-        return jsonify({'message': True}), 200
-    return jsonify({'message': False}), 404
+@api.route('/logout')
+class UtilizadorLogout(Resource):
+    @api.doc(responses={200: 'Success', 401: 'Unauthorized', 500: 'Internal Server Error'})
+    def post(self):
+        """Logout current utilizador"""
+        if current_user.is_authenticated:
+            logout_user()
+            return {'message': 'Desconectado'}, 200
+        return {'message': 'Não existem utilizadores conectados'}, 401
 
-@utilizador_blueprint.route('/', methods=['GET'])
-def get_utilizador_atual():
-    if current_user.is_authenticated:
-        return jsonify({'result': current_user.serializar()}), 200
-    else:
-        return jsonify({'message': 'user nao conectado'}), 401
+
+@api.route('/<string:nomeUtilizador>/existe')
+class UtilizadorExist(Resource):
+    @api.doc(responses={200: 'Success', 404: 'Not Found', 500: 'Internal Server Error'})
+    def get(self, nomeUtilizador):
+        """Check if utilizador exists"""
+        utilizador = Utilizador.query.filter_by(nomeUtilizador=nomeUtilizador).first()
+        if utilizador:
+            return {'message': True}, 200
+        return {'message': False}, 404
+
+
+@api.route('/current')
+class CurrentUtilizador(Resource):
+    @api.doc(responses={200: 'Success', 401: 'Unauthorized', 500: 'Internal Server Error'})
+    def get(self):
+        """Get current utilizador"""
+        if current_user.is_authenticated:
+            return {'result': current_user.serializar()}, 200
+        else:
+            return {'message': 'Utilizador não conectado'}, 401
+
+
+@api.route('/<string:nomeUtilizador>/update-api-key')
+class UpdateAPIKey(Resource):
+    @api.doc(responses={200: 'Success', 401: 'Unauthorized', 404: 'Not Found', 500: 'Internal Server Error'})
+    def post(self, nomeUtilizador):
+        """Update API Key for utilizador"""
+        utilizador = Utilizador.query.filter_by(nomeUtilizador=nomeUtilizador).first()
+        if utilizador:
+            utilizador.update_api_key()
+            db.session.commit()
+            login_user(utilizador)
+            return {'message': 'Conectado', 'api_key': utilizador.api_key}, 200
+        return {'message': 'Utilizador não encontrado'}, 404
+
