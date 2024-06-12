@@ -57,7 +57,7 @@ class UtilizadorLogin(Resource):
             return {'message': 'Autenticação incorreta'}, 401
 
         login_user(utilizador)
-        return {'message': 'Conectado'}, 200
+        return {'message': 'Conectado','result':utilizador.serializar()}, 200
 
 
 @api.route('/logout')
