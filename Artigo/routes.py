@@ -1,6 +1,6 @@
 from flask import request, jsonify
 from flask_restx import Namespace, Resource, fields
-from microservice.Artigo.health import HealthCheck
+from health import HealthCheck
 from models import Artigo, db
 
 api = Namespace('artigo', description='Artigo related operations')

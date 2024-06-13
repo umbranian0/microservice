@@ -2,7 +2,7 @@
 from flask import Blueprint, request, jsonify
 import requests
 from flask_restx import Api, Resource, fields
-from microservice.Encomenda.health import HealthCheck
+from health import HealthCheck
 from models import Encomenda, EncomendaLinha, db
 
 # Define the blueprint for encomenda routes
