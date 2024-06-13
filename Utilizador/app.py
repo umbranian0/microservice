@@ -26,7 +26,7 @@ login_manager = LoginManager(app)
 migrate = Migrate(app, db)
 
 # Initialize Flask-RESTx
-api = Api(app)
+api = Api(app, title='Utilizador API',doc='/swagger/', description='A microservice for user processing')
 api.add_namespace(utilizador_api_routes, path='/api/utilizador')
 
 @app.route('/')
