@@ -1,4 +1,5 @@
 # routes.py
+import logging
 from flask import Blueprint, request, jsonify
 import requests
 from flask_restx import Api, Resource, fields
