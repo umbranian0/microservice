@@ -17,13 +17,5 @@ models.init_app(app)
 # Initialize Flask-Migrate
 migrate = Migrate(app, models.db)
 
-# Initialize Flask-RESTx
-api = Api(app, doc='/swagger/')
-api.add_namespace(artigo_api, path='/api/artigo')
-
-@app.route('/')
-def index():
-    return "Bem vindo as API do Artigo"
-
 if __name__ == '__main__':
     app.run(debug=True, port=5002)

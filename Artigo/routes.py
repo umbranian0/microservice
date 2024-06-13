@@ -3,7 +3,8 @@ from flask_restx import Namespace, Resource, fields
 from health import HealthCheck
 from models import Artigo, db
 
-api = Namespace('artigo', description='Artigo related operations')
+api = Namespace('artigo',doc='/swagger/', description='Artigo related operations')
+# Initialize Flask-RESTx
 
 # Define the authorization header
 authorization = api.parser()
@@ -25,7 +26,8 @@ class HealthCheckResource(Resource):
         else:
             return {'status': 'Error', 'database': 'Error'}, 500
         
-        
+
+  
 @api.route('/todos')
 class GetTodosArtigos(Resource):
     def get(self):

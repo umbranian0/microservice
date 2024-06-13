@@ -19,13 +19,14 @@ file_path = os.path.abspath(os.path.join(os.getcwd(), 'database', 'utilizador.db
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + file_path
 
 models.init_app(app)
+
 app.register_blueprint(utilizador_blueprint)
 login_manager = LoginManager(app)
 
 migrate = Migrate(app, db)
 
 # Initialize Flask-RESTx
-api = Api(app, doc='/swagger/')
+api = Api(app)
 api.add_namespace(utilizador_api_routes, path='/api/utilizador')
 
 @app.route('/')

@@ -6,15 +6,17 @@ from flask_restx import Namespace, Resource, fields
 from models import Utilizador, db
 from flask_login import login_user, current_user, logout_user
 from health import HealthCheck
+
+##var
 utilizador_blueprint = Blueprint('utilizador_api_routes', __name__, url_prefix='/api/utilizador')
-api = Namespace('Utilizador', description='Utilizador operations')
+api = Namespace('Utilizador',doc='/swagger/', description='Utilizador operations')
 
 # Define models for request and response payloads
 utilizador_model = api.model('Utilizador', {
     'nomeUtilizador': fields.String(required=True, description='Nome do utilizador'),
     'password': fields.String(required=True, description='Senha do utilizador')
 })
-
+#healthcheck
 @api.route('/_health')
 class HealthCheckResource(Resource):
     def get(self):
@@ -24,7 +26,7 @@ class HealthCheckResource(Resource):
         else:
             return {'status': 'Error', 'database': 'Error'}, 500
         
-
+#get all
 @api.route('/')
 class UtilizadorList(Resource):
     @api.doc(responses={200: 'Success', 500: 'Internal Server Error'})

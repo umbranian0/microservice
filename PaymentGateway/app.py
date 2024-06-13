@@ -10,7 +10,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Initialize extensions
 db.init_app(app)
-api = Api(app, title='Payment API', description='A microservice for payment processing')
+api = Api(app, title='Payment API',doc='/swagger/', description='A microservice for payment processing')
 
 # Register namespaces
 api.add_namespace(payment_ns, path='/api/paymentGateway')
