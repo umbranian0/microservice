@@ -15,7 +15,7 @@ payment_model = payment_ns.model('Payment', {
     'Fee': fields.Float(required=False, description='The fee for the payment'),
     'IsPaid': fields.Boolean(description='The payment status', default=False)
 })
-from health import HealthCheck
+
 @payment_ns.route('/_health')
 class HealthCheckResource(Resource):
     def get(self):
@@ -24,8 +24,6 @@ class HealthCheckResource(Resource):
             return {'status': 'OK', 'database': 'OK'}, 200
         else:
             return {'status': 'Error', 'database': 'Error'}, 500
-        
-
 
 @payment_ns.route('/CreatePayment')
 class CreatePayment(Resource):

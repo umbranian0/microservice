@@ -1,13 +1,14 @@
 # routes.py
 from flask import Blueprint, request, jsonify
 import requests
-from flask_restx import Api, Resource, fields
+from flask_restx import Namespace, Resource, fields
 from health import HealthCheck
 from models import Encomenda, EncomendaLinha, db
+import logging
 
 # Define the blueprint for encomenda routes
 encomenda_blueprint = Blueprint('encomenda_api_routes', __name__, url_prefix='/api/encomenda')
-api = Api(encomenda_blueprint, doc='/swagger/')
+api = Namespace("Encomenda", doc='/swagger/',  description='Encomenda operations')
 
 # Define authorization header
 authorization = api.parser()
@@ -15,7 +16,7 @@ authorization.add_argument('Authorization', location='headers', required=True, h
 
 
 # URL for the Utilizador API
-UTILIZADOR_API_URL = 'http://127.0.0.1:5001/api/utilizador'
+UTILIZADOR_API_URL = 'http://127.0.0.1:5000/api/utilizador'
 
 # Function to get user information from the Utilizador microservice
 def get_utilizador(api_key):
@@ -44,8 +45,7 @@ class HealthCheckResource(Resource):
             return {'status': 'OK', 'database': 'OK'}, 200
         else:
             return {'status': 'Error', 'database': 'Error'}, 500
-        
-        
+
 @api.route('/adicionarArtigo')
 class AdicionarArtigo(Resource):
     @api.expect(authorization, encomenda_fields)
@@ -161,7 +161,6 @@ class GetEncomendaPendente(Resource):
         except Exception as e:
             logging.error(f"Error retrieving pending order: {e}")
             return {'message': 'Erro ao obter a encomenda pendente.'}, 500
-
 
 @api.route('/checkout')
 class Checkout(Resource):

@@ -25,9 +25,7 @@ class HealthCheckResource(Resource):
             return {'status': 'OK', 'database': 'OK'}, 200
         else:
             return {'status': 'Error', 'database': 'Error'}, 500
-        
 
-  
 @api.route('/todos')
 class GetTodosArtigos(Resource):
     def get(self):

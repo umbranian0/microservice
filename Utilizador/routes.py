@@ -53,7 +53,6 @@ class UtilizadorList(Resource):
 
         return {'message': 'Utilizador criado com sucesso.', 'result': utilizador.serializar()}, 201
 
-
 @api.route('/<string:nomeUtilizador>/login')
 class UtilizadorLogin(Resource):
     @api.doc(responses={200: 'Success', 401: 'Unauthorized', 500: 'Internal Server Error'})
@@ -71,7 +70,6 @@ class UtilizadorLogin(Resource):
         login_user(utilizador)
         return {'message': 'Conectado','result':utilizador.serializar()}, 200
 
-
 @api.route('/logout')
 class UtilizadorLogout(Resource):
     @api.doc(responses={200: 'Success', 401: 'Unauthorized', 500: 'Internal Server Error'})
@@ -81,7 +79,6 @@ class UtilizadorLogout(Resource):
             logout_user()
             return {'message': 'Desconectado'}, 200
         return {'message': 'Não existem utilizadores conectados'}, 401
-
 
 @api.route('/<string:nomeUtilizador>/existe')
 class UtilizadorExist(Resource):
@@ -93,7 +90,6 @@ class UtilizadorExist(Resource):
             return {'message': True}, 200
         return {'message': False}, 404
 
-
 @api.route('/current')
 class CurrentUtilizador(Resource):
     @api.doc(responses={200: 'Success', 401: 'Unauthorized', 500: 'Internal Server Error'})
@@ -103,7 +99,6 @@ class CurrentUtilizador(Resource):
             return {'result': current_user.serializar()}, 200
         else:
             return {'message': 'Utilizador não conectado'}, 401
-
 
 @api.route('/<string:nomeUtilizador>/update-api-key')
 class UpdateAPIKey(Resource):
