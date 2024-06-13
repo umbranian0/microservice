@@ -2,6 +2,7 @@
 from flask import Blueprint, request, jsonify
 import requests
 from flask_restx import Api, Resource, fields
+from microservice.Encomenda.health import HealthCheck
 from models import Encomenda, EncomendaLinha, db
 
 # Define the blueprint for encomenda routes
@@ -35,6 +36,16 @@ criar_encomenda_fields = api.model('CriarEncomenda', {
     'utilizadorId': fields.Integer(required=True, description='ID do utilizador')
 })
 
+@api.route('/_health')
+class HealthCheckResource(Resource):
+    def get(self):
+        database_status = HealthCheck.check_database_status()
+        if database_status == 'OK':
+            return {'status': 'OK', 'database': 'OK'}, 200
+        else:
+            return {'status': 'Error', 'database': 'Error'}, 500
+        
+        
 @api.route('/adicionarArtigo')
 class AdicionarArtigo(Resource):
     @api.expect(authorization, encomenda_fields)

@@ -1,6 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
 import requests
-
+from sqlalchemy.sql.expression import text
 # Define the database object
 db = SQLAlchemy()
 
@@ -30,7 +30,7 @@ class Payment(db.Model):
             'fee': self.fee,
             'is_paid': self.is_paid
         }
-
+    
     @classmethod
     def create_payment(cls, payment_data):
         # Send data to the payment gateway

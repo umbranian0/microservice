@@ -3,7 +3,9 @@
 from flask import request
 from flask_restx import Namespace, Resource, fields
 from models import Payment, acknowledge_payment_in_gateway
+from health import HealthCheck
 
+#initialize payment namespace and services        
 payment_ns = Namespace('paymentGateway', description='Payment operations')
 
 payment_model = payment_ns.model('Payment', {
@@ -13,6 +15,17 @@ payment_model = payment_ns.model('Payment', {
     'Fee': fields.Float(required=False, description='The fee for the payment'),
     'IsPaid': fields.Boolean(description='The payment status', default=False)
 })
+from health import HealthCheck
+@payment_ns.route('/_health')
+class HealthCheckResource(Resource):
+    def get(self):
+        database_status = HealthCheck.check_database_status()
+        if database_status == 'OK':
+            return {'status': 'OK', 'database': 'OK'}, 200
+        else:
+            return {'status': 'Error', 'database': 'Error'}, 500
+        
+
 
 @payment_ns.route('/CreatePayment')
 class CreatePayment(Resource):

@@ -5,7 +5,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_restx import Namespace, Resource, fields
 from models import Utilizador, db
 from flask_login import login_user, current_user, logout_user
-
+from health import HealthCheck
 utilizador_blueprint = Blueprint('utilizador_api_routes', __name__, url_prefix='/api/utilizador')
 api = Namespace('Utilizador', description='Utilizador operations')
 
@@ -14,6 +14,16 @@ utilizador_model = api.model('Utilizador', {
     'nomeUtilizador': fields.String(required=True, description='Nome do utilizador'),
     'password': fields.String(required=True, description='Senha do utilizador')
 })
+
+@api.route('/_health')
+class HealthCheckResource(Resource):
+    def get(self):
+        database_status = HealthCheck.check_database_status()
+        if database_status == 'OK':
+            return {'status': 'OK', 'database': 'OK'}, 200
+        else:
+            return {'status': 'Error', 'database': 'Error'}, 500
+        
 
 @api.route('/')
 class UtilizadorList(Resource):

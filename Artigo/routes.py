@@ -1,5 +1,6 @@
 from flask import request, jsonify
 from flask_restx import Namespace, Resource, fields
+from microservice.Artigo.health import HealthCheck
 from models import Artigo, db
 
 api = Namespace('artigo', description='Artigo related operations')
@@ -15,7 +16,16 @@ artigo_fields = api.model('Artigo', {
     'preco': fields.Float(required=False, description='Preço do artigo'),
     'imagem': fields.String(required=False, description='Imagem do artigo')
 })
-
+@api.route('/_health')
+class HealthCheckResource(Resource):
+    def get(self):
+        database_status = HealthCheck.check_database_status()
+        if database_status == 'OK':
+            return {'status': 'OK', 'database': 'OK'}, 200
+        else:
+            return {'status': 'Error', 'database': 'Error'}, 500
+        
+        
 @api.route('/todos')
 class GetTodosArtigos(Resource):
     def get(self):
