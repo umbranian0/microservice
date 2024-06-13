@@ -12,6 +12,7 @@ api = Api(encomenda_blueprint, doc='/swagger/')
 authorization = api.parser()
 authorization.add_argument('Authorization', location='headers', required=True, help='Bearer Token')
 
+
 # URL for the Utilizador API
 UTILIZADOR_API_URL = 'http://127.0.0.1:5001/api/utilizador'
 
@@ -150,6 +151,7 @@ class GetEncomendaPendente(Resource):
             logging.error(f"Error retrieving pending order: {e}")
             return {'message': 'Erro ao obter a encomenda pendente.'}, 500
 
+
 @api.route('/checkout')
 class Checkout(Resource):
     @api.expect(authorization)
@@ -169,12 +171,30 @@ class Checkout(Resource):
                 return {'message': 'User ID missing in response from Utilizador service'}, 400
 
             encomenda = Encomenda.query.filter_by(utilizadorId=utilizador_id, aberta=True).first()
-            if encomenda:
+            if not encomenda:
+                return {'message': 'No open orders found for the user.'}, 404
+
+            # Prepare payment data
+            payment_data = {
+                "Id": encomenda.id,  # Payment ID should be unique
+                "CustomerId": utilizador_id,
+                "PaymentTypeId": 1,  # Assuming a fixed payment type for now
+                "TotalAmount": encomenda.total_amount,  # Assuming `total_amount` is a property of Encomenda
+                "Fee": encomenda.fee,  # Assuming `fee` is a property of Encomenda
+                "IsPaid": False
+            }
+
+            # Send request to Payment service
+            payment_service_url = 'http://payment-service-url/payment/create'  # Replace with actual URL
+            response = requests.post(payment_service_url, json=payment_data)
+
+            if response.status_code == 200:
                 encomenda.aberta = False
                 db.session.commit()
-                return {'message': 'Checkout completed successfully.'}, 200
+                return {'message': 'Checkout completed successfully and payment processed.'}, 200
             else:
-                return {'message': 'No open orders found for the user.'}, 404
+                return {'message': 'Error processing payment', 'details': response.text}, 400
+
         except Exception as e:
             logging.error(f"Error during checkout: {e}")
             return {'message': 'Erro no checkout.'}, 500
