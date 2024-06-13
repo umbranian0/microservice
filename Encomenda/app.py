@@ -1,8 +1,13 @@
 import logging
+import os
 from flask import Flask
 from flask_restx import Api
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+from models import db
+import models 
+from routes import encomenda_blueprint
+from routes import api as encomenda_api_routes
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -24,20 +29,6 @@ migrate = Migrate(app, db)
 api = Api(app, title='Encomenda API',doc='/swagger/', description='A microservice for encomenda processing')
 api.add_namespace(encomenda_api_routes, path='/api/encomenda')
 
-# def create_app():
-#     app = Flask(__name__)
-#     app.config.from_object('config.Config')
-#
-#     logging.debug("Initializing the database.")
-#     db.init_app(app)
-#     logging.debug("Initializing migration.")
-#     migrate.init_app(app, db)
-#
-#     logging.debug("Blueprint registered successfully.")
-#
-#     return app
-
 if __name__ == '__main__':
-    # app = create_app()
     logging.debug("Starting the application.")
     app.run(debug=True, port=5003)
