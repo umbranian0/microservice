@@ -13,7 +13,7 @@ db.init_app(app)
 api = Api(app, title='Payment API', description='A microservice for payment processing')
 
 # Register namespaces
-api.add_namespace(payment_ns, path='/payment')
+api.add_namespace(payment_ns, path='/api/paymentGateway')
 
 if __name__ == '__main__':
     with app.app_context():
